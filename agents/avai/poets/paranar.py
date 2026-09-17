@@ -2,7 +2,7 @@ from google.adk.agents import LlmAgent, SequentialAgent
 from google.genai import types
 
 from ..config import get_model
-from ..prompts import PARANAR_INSTRUCTION
+from ..instructions import PARANAR_INSTRUCTION
 from ..tools import search_verses, get_verse, get_tinai_context
 from ..tools.image import generate_image
 
@@ -13,7 +13,7 @@ def _debug_log(msg):
 
 _paranar_researcher = LlmAgent(
     name="_paranar_researcher",
-    description="Research agent to pull verses and tinai context, and craft the image prompt.",
+    description="பாடல்களையும் திணைச் சூழல்களையும் திரட்டி விரிவான காட்சி விவரிப்பை (Image Prompt) உருவாக்கும் ஆராய்ச்சி முகவர்.",
     instruction=PARANAR_INSTRUCTION,
     model=get_model(),
     tools=[get_verse, search_verses, get_tinai_context]
@@ -26,7 +26,7 @@ from google.adk.events.event import Event
 
 class _DeterministicPainter(BaseAgent):
     name: str = "_paranar_painter"
-    description: str = "Deterministic painter agent that directly calls the image generation tool."
+    description: str = "ஓவியக் கருவியை நேரடியாக அழைத்துச் சித்திரங்களை உருவாக்கும் ஓவிய முகவர்."
 
     async def _run_async_impl(
         self, ctx: InvocationContext
@@ -46,12 +46,15 @@ class _DeterministicPainter(BaseAgent):
             
         try:
             image_result = generate_image(prompt=researcher_text, aspect_ratio="1:1")
-            result_text = f"Here is the generated visualization:\n\n![Generated Image]({image_result.image_data_uri})\n\n*{image_result.disclaimer}*"
+            if image_result.image_data_uri:
+                result_text = f"Here is the generated visualization:\n\n![Generated Image]({image_result.image_data_uri})\n\n*{image_result.disclaimer}*"
+            else:
+                result_text = f"Here is the visual scene description crafted for this verse:\n\n> {researcher_text}\n\n*{image_result.disclaimer} (Image rendering disabled — set SANGAM_IMAGE_BACKEND=gemini to render)*"
             content = types.Content(
                 parts=[types.Part.from_text(text=result_text)],
                 role="model"
             )
-            _debug_log(f">>> _DeterministicPainter generated image successfully, URI length: {len(image_result.image_data_uri) if image_result.image_data_uri else 'None'}")
+            _debug_log(f">>> _DeterministicPainter generated image result successfully, URI length: {len(image_result.image_data_uri) if image_result.image_data_uri else 'None'}")
         except Exception as e:
             _debug_log(f">>> _DeterministicPainter exception: {e}")
             content = types.Content(
@@ -83,6 +86,7 @@ class _ToolExposingSequentialAgent(SequentialAgent):
 
 paranar_agent = _ToolExposingSequentialAgent(
     name="paranar",
-    description="பரணர் (Paranar) — Recreates imagery and visualizes scenes from Sangam poetry. (Note: This agent CAN generate real image files, always route image requests to him instead of declining.)",
+    description="பரணர் (Paranar) — சங்கப் பாடல்களின் காட்சிகளை மனக்கண் முன் கொண்டுவந்து ஓவியமாகக் காட்சிப்படுத்துபவர்.",
     sub_agents=[_paranar_researcher, _paranar_painter],
 )
+
