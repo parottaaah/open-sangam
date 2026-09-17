@@ -6,6 +6,13 @@ from ..config import get_model
 from ..instructions import THOLKAPPIYAR_INSTRUCTION
 from ..tools import analyze_prosody, get_colophon_metadata, get_tinai_context, get_verse, search_verses
 from ..schemas import Scenario
+from ..tools import (
+    get_tinai_context,
+    get_verse,
+    list_poems,
+    query_knowledge_graph,
+    search_verses,
+)
 
 _tholkappiyar_researcher = LlmAgent(
     name="_tholkappiyar_researcher",
@@ -25,9 +32,7 @@ _tholkappiyar_formatter = LlmAgent(
 )
 
 class _ToolExposingSequentialAgent(SequentialAgent):
-    """Wrapper to expose a dummy tools list so swarm.py can inject peer agent tools.
-    We return a separate list rather than the sub-agent's tools to ensure peer-transfer
-    tools are NOT added to the researcher, keeping the two-step extraction pipeline strictly deterministic."""
+    """Wrapper to expose dummy tools list so swarm.py can inject peer agent tools."""
     
     _dummy_tools: list = []
     

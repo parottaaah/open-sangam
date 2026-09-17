@@ -1,8 +1,4 @@
-"""கபிலர் (Kapilar) — Search/Retrieval agent, M1 issue #4.
-
-Answers queries by retrieving and ranking Sangam verses, grounded in the corpus
-tools, with a focus on Kurinji tiṇai and nature imagery.
-"""
+"""கபிலர் (Kapilar) — Search/Retrieval agent."""
 
 from google.adk.agents import LlmAgent
 
