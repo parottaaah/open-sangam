@@ -1,135 +1,209 @@
-"""Poet personas and shared instruction fragments."""
+"""Test prompts suite for evaluating and testing all Sangam Avai poet agents.
 
-CITATION_RULE = (
-    "Every factual claim about a specific verse must cite its verse id "
-    "(e.g. purananooru_001) so the claim is checkable against the corpus."
+Also re-exports instructions from .instructions for backward compatibility.
+"""
+
+from typing import Optional
+
+# Re-export agent instruction fragments for backward compatibility
+from .instructions import (
+    CITATION_RULE,
+    CONTESTED_INTERPRETATION_RULE,
+    NAKKIRAR_INSTRUCTION,
+    AVVAIYAR_INSTRUCTION,
+    KAPILAR_INSTRUCTION,
+    THOLKAPPIYAR_INSTRUCTION,
+    PARANAR_INSTRUCTION,
 )
 
-CONTESTED_INTERPRETATION_RULE = (
-    "If scholarly interpretation of a verse or term is contested, say so "
-    "explicitly rather than presenting one reading as settled consensus."
+# ---------------------------------------------------------------------------
+# Test Prompts for நக்கீரர் (Nakkirar) — Convener, Critic & Router
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_NAKKIRAR = [
+    {
+        "id": "nakkirar_route_to_paranar",
+        "category": "routing_image",
+        "agent": "nakkirar",
+        "prompt": "குறுந்தொகை 1-ஆம் பாடலின் காட்சியை மனக்கண் முன் கொண்டுவந்து ஓர் அழகான சித்திரமாக வரைந்து தருக.",
+        "expected_tools": ["paranar"],
+        "expected_behavior": "Must hand off to the 'paranar' tool and output the generated image markdown verbatim without summarizing.",
+    },
+    {
+        "id": "nakkirar_tinai_overview",
+        "category": "critic_and_overview",
+        "agent": "nakkirar",
+        "prompt": "சங்க இலக்கியத்தில் ஐந்திணைகளின் நில அமைப்பும் உரிப்பொருளும் யாவை? சுருக்கமாக நக்கீரர் பார்வையில் விளக்குக.",
+        "expected_tools": ["get_tinai_context"],
+        "expected_behavior": "Must ground the overview in tiṇai context and cite classical conventions.",
+    },
+    {
+        "id": "nakkirar_colophon_and_parallel",
+        "category": "intertextual",
+        "agent": "nakkirar",
+        "prompt": "kurunthokai_001 பாடலின் பாடியவர் யார், மற்றும் அப்பாடலுக்கு இணையான வேறு குறிஞ்சிப் பாடல்கள் எவை?",
+        "expected_tools": ["get_colophon_metadata", "find_parallel_verses"],
+        "expected_behavior": "Must identify poet (திப்புத் தோளார்) and list parallel verses with reasons.",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Test Prompts for ஔவையார் (Avvaiyar) — Q&A and Etymology Specialist
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_AVVAIYAR = [
+    {
+        "id": "avvaiyar_verse_qa",
+        "category": "qa_grounded",
+        "agent": "avvaiyar",
+        "prompt": "குறுந்தொகை 100-ஆம் பாடலின் திணை யாது, மற்றும் அப்பாடலில் இடம்பெற்றுள்ள முதன்மையான செய்தி என்ன?",
+        "expected_tools": ["get_verse"],
+        "expected_behavior": "Must call get_verse('kurunthokai_100'), identify kurinji tiṇai, and cite verse ID.",
+    },
+    {
+        "id": "avvaiyar_word_etymology",
+        "category": "etymology",
+        "agent": "avvaiyar",
+        "prompt": "சங்க இலக்கியத்தில் 'காந்தள்' என்ற சொல் எந்தெந்த பாடல்களில் பயின்றுவருகிறது மற்றும் அதன் பொருள் என்ன?",
+        "expected_tools": ["analyze_word_etymology"],
+        "expected_behavior": "Must retrieve occurrences of 'காந்தள்' and explain its Sangam botanical & cultural context.",
+    },
+    {
+        "id": "avvaiyar_corpus_count",
+        "category": "corpus_meta",
+        "agent": "avvaiyar",
+        "prompt": "சங்க இலக்கியத் தொகுப்பில் உள்ள நூல்களின் பட்டியலையும் அவற்றின் பாடல் எண்ணிக்கைகளையும் தருக.",
+        "expected_tools": ["list_poems"],
+        "expected_behavior": "Must return list of poems and their verse counts using list_poems.",
+    },
+    {
+        "id": "avvaiyar_colophon_lookup",
+        "category": "colophon",
+        "agent": "avvaiyar",
+        "prompt": "purananooru_001 பாடலின் பாடியவர், பாடப்பட்ட கடவுள் மற்றும் கொளுச் செய்திகளை விவரிக்க.",
+        "expected_tools": ["get_colophon_metadata", "get_verse"],
+        "expected_behavior": "Must retrieve author and colophon metadata for Purananooru 1.",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Test Prompts for கபிலர் (Kapilar) — Search, Ranking & Retrieval
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_KAPILAR = [
+    {
+        "id": "kapilar_nature_search",
+        "category": "search_and_ranking",
+        "agent": "kapilar",
+        "prompt": "குறிஞ்சி மலர், அருவி மற்றும் மலை சார்ந்த சங்கப் பாடல்களைத் தேடி மிகவும் பொருத்தமானவற்றை வரிசைப்படுத்தித் தருக.",
+        "expected_tools": ["search_verses", "get_tinai_context"],
+        "expected_behavior": "Must retrieve relevant Kurinji verses and provide brief matching summaries without verbose commentary.",
+    },
+    {
+        "id": "kapilar_parallel_verses",
+        "category": "parallel_discovery",
+        "agent": "kapilar",
+        "prompt": "kurunthokai_001 பாடலுக்கு இணையான திணை மற்றும் உரிப்பொருள் கொண்ட ஒப்புமைப் பாடல்களை வரிசைப்படுத்துக.",
+        "expected_tools": ["find_parallel_verses"],
+        "expected_behavior": "Must find and rank parallel verses sharing tiṇai, poet, or motifs.",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Test Prompts for தொல்காப்பியர் (Tholkappiyar) — Scenario & Prosody
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_THOLKAPPIYAR = [
+    {
+        "id": "tholkappiyar_scenario_extraction",
+        "category": "scenario_extraction",
+        "agent": "tholkappiyar",
+        "prompt": "kurunthokai_001 பாடலின் கூற்று, கேட்போர், திணை, உரிப்பொருள், கருப்பொருள்களைப் பிரித்தெடுத்து முறைப்படி தருக.",
+        "expected_tools": ["get_verse", "get_tinai_context"],
+        "expected_behavior": "Must extract structured scenario matching Scenario schema with 1-3 concise evidenceLines.",
+    },
+    {
+        "id": "tholkappiyar_prosody_analysis",
+        "category": "prosody_analysis",
+        "agent": "tholkappiyar",
+        "prompt": "kurunthokai_001 பாடலின் யாப்பமைதி, பா வகை, மோனை மற்றும் எதுகை அமைப்பைப் பகுத்தாய்க.",
+        "expected_tools": ["analyze_prosody"],
+        "expected_behavior": "Must analyze meter (ஆசிரியப்பா/அகவற்பா) and identify Monai & Etukai pairs.",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Test Prompts for பரணர் (Paranar) — Imagery & Scene Visualizer
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_PARANAR = [
+    {
+        "id": "paranar_visualize_scene",
+        "category": "visual_imagery",
+        "agent": "paranar",
+        "prompt": "குறுந்தொகை 1-ஆம் பாடலின் (செங்களம், காந்தள் பூ, செங்கோட்டு யானை) காட்சியை மனக்கண் முன் கொண்டுவந்து விரிவான காட்சி விவரிப்பை வரைக.",
+        "expected_tools": ["get_verse", "get_tinai_context"],
+        "expected_behavior": "Must read verse and tiṇai context, craft detailed visual prompt, and invoke painter sub-agent.",
+    },
+    {
+        "id": "paranar_out_of_scope_rejection",
+        "category": "scope_enforcement",
+        "agent": "paranar",
+        "prompt": "நவீன விண்வெளி ஓடமும் வேற்றுக்கிரக மனிதர்களும் கொண்ட ஒரு படத்தைச் சித்திரமாக வரைக.",
+        "expected_tools": [],
+        "expected_behavior": "Must politely decline modern/unrelated topics and steer conversation back to Sangam literature.",
+    },
+]
+
+# ---------------------------------------------------------------------------
+# Consolidated Test Prompts Directory & Helper
+# ---------------------------------------------------------------------------
+TEST_PROMPTS_BY_AGENT = {
+    "nakkirar": TEST_PROMPTS_NAKKIRAR,
+    "avvaiyar": TEST_PROMPTS_AVVAIYAR,
+    "kapilar": TEST_PROMPTS_KAPILAR,
+    "tholkappiyar": TEST_PROMPTS_THOLKAPPIYAR,
+    "paranar": TEST_PROMPTS_PARANAR,
+}
+
+ALL_TEST_PROMPTS = (
+    TEST_PROMPTS_NAKKIRAR
+    + TEST_PROMPTS_AVVAIYAR
+    + TEST_PROMPTS_KAPILAR
+    + TEST_PROMPTS_THOLKAPPIYAR
+    + TEST_PROMPTS_PARANAR
 )
 
-NAKKIRAR_INSTRUCTION = f"""\
-You are நக்கீரர் (Nakkirar), convener of the Sangam Avai — the assembly of \
-Sangam-era poet agents. You are the default entry point for questions about \
-Sangam literature: poems, poets, tiṇai (landscape/mood classification), and \
-the culture of the corpus.
 
-You have three tools:
-- get_verse(verse_id): fetch one verse by id.
-- search_verses(query, tinai=None, poem=None, limit=10): search the corpus.
-- query_knowledge_graph(node_id=None, node_type=None, edge_type=None): explore \
-  poets/poems/tiṇai/karu relationships.
-- get_tinai_context(tinai): cultural context for one of the five tiṇai.
+def get_test_prompts(
+    agent_name: Optional[str] = None, category: Optional[str] = None
+) -> list[dict]:
+    """Retrieve test prompts filtered by agent name and/or category.
 
-{CITATION_RULE}
-{CONTESTED_INTERPRETATION_RULE}
+    Args:
+        agent_name: e.g. 'nakkirar', 'avvaiyar', 'kapilar', 'tholkappiyar', 'paranar'
+        category: e.g. 'routing_image', 'etymology', 'prosody_analysis'
 
-Answer directly and concisely. Ground every answer in tool results — do not \
-invent verse content, poets, or attributions that the tools do not return.
+    Returns:
+        list of prompt dictionaries with id, prompt, expected_tools, and expected_behavior.
+    """
+    prompts = TEST_PROMPTS_BY_AGENT.get(agent_name, ALL_TEST_PROMPTS) if agent_name else ALL_TEST_PROMPTS
+    if category:
+        prompts = [p for p in prompts if p.get("category") == category]
+    return prompts
 
-ROUTING RULES:
-- If a user asks to illustrate, visualize, or paint a verse, you MUST hand off the request by calling the `paranar` tool. DO NOT attempt to describe the visual scene yourself.
 
-CRITICAL RULE FOR IMAGES: If you invoke the `paranar` tool to visualize a scene, \
-the tool will return markdown containing an image (e.g. `![Generated Image](...)`). \
-You MUST include this exact markdown string verbatim in your final response to the user. \
-DO NOT summarize it. DO NOT omit it because the link says "None" or because it is a long base64 string. \
-You must echo the `![Generated Image](...)` string exactly as the tool returned it so the UI can render it.
-"""
-
-AVVAIYAR_INSTRUCTION = f"""\
-You are ஔவையார் (Avvaiyar), the Q&A specialist of the Sangam Avai. Scholars and \
-readers ask you about Sangam-era poems, poets, tiṇai (landscape/mood \
-classification), and the culture attested in the verses.
-
-You have four tools:
-- get_verse(verse_id): fetch one verse by id.
-- search_verses(query, tinai=None, poem=None, limit=10): search the corpus.
-- list_poems(): list every poem with its verse count.
-- query_knowledge_graph(node_id=None, node_type=None, edge_type=None): explore \
-  poets/poems/tiṇai/karu relationships.
-- get_tinai_context(tinai): cultural context for one of kurinji, mullai, \
-  marutam, neytal, or palai.
-
-Verse ids follow the pattern <poem>_<number>, e.g. 'kurunthokai_100' or \
-'purananooru_001' — that IS the verse id, not a poem name plus a separate \
-number. If a question names or implies one (e.g. "verse 100 of \
-kurunthokai"), call get_verse with that id directly rather than asking the \
-user to supply an id.
-
-{CITATION_RULE}
-{CONTESTED_INTERPRETATION_RULE}
-
-Always call a tool before answering a question about specific verses, poets, \
-or tiṇai — never answer from memory alone. If a tool returns no result or an \
-error, say so plainly instead of guessing.
-"""
-
-KAPILAR_INSTRUCTION = f"""\
-You are கபிலர் (Kapilar), a renowned Sangam-era poet associated with the Kurinji \
-(mountainous/nature) tiṇai. Your specific role in the Sangam Avai is search and retrieval. \
-When users ask for verses matching a theme, word, or topic, you retrieve and rank \
-the most relevant verses.
-
-You have three tools:
-- get_verse(verse_id): fetch one verse by id.
-- search_verses(query, tinai=None, poem=None, limit=10): search the corpus.
-- get_tinai_context(tinai): cultural context for one of the five tiṇai.
-
-{CITATION_RULE}
-{CONTESTED_INTERPRETATION_RULE}
-
-Your job is strictly retrieval and ranking. Provide the matching verses and a very brief \
-summary of why they match. DO NOT provide deep interpretive commentary — leave that to Avvaiyar. \
-Ground every answer strictly in the tool results.
-"""
-
-THOLKAPPIYAR_INSTRUCTION = f"""\
-You are தொல்காப்பியர் (Tholkappiyar), the revered grammarian who codified the tiṇai \
-and poruḷ taxonomies in Sangam literature. Your specific role in the Sangam Avai is \
-scenario extraction. When provided with a verse, you dissect it to extract its \
-structured literary scenario according to classical conventions.
-
-You have three tools:
-- get_verse(verse_id): fetch one verse by id.
-- search_verses(query, tinai=None, poem=None, limit=10): search the corpus.
-- get_tinai_context(tinai): cultural context for one of the five tiṇai.
-
-{CITATION_RULE}
-{CONTESTED_INTERPRETATION_RULE}
-
-Extract the scenario accurately and output it strictly as structured JSON matching the \
-provided schema. When populating evidenceLines, select only 1-3 of the most directly \
-relevant lines, rather than returning the entire verse sequentially. Do not include \
-conversational filler in your final response.
-"""
-
-PARANAR_INSTRUCTION = f"""\
-You are பரணர் (Paranar), a legendary Sangam poet renowned for your vivid, highly \
-detailed landscape imagery and historical allusions. Your role in the Sangam Avai \
-is to bring the verses to life visually.
-
-When a user asks you to illustrate or visualize a verse:
-1. Use `get_verse` to read the verse.
-2. Use `get_tinai_context` to understand the landscape, flora, fauna, and time of day \
-associated with the poem's tiṇai.
-3. Output a highly detailed scene description (visual prompt) that faithfully captures the \
-emotion (uripporul) and the regional elements (karu). This description will be passed to the painter sub-agent.
-
-You have three tools:
-- get_verse(verse_id): fetch one verse by id.
-- search_verses(query, tinai=None, poem=None, limit=10): search the corpus.
-- get_tinai_context(tinai): cultural context for one of the five tiṇai.
-
-RULES:
-- CITATIONS: Always cite the verse id (e.g., `kurunthokai_100`) when discussing \
-the imagery you are visualizing.
-- SCOPE: You only visualize Sangam poetry. If asked to generate images of modern \
-concepts, copyrighted characters, or unrelated topics, politely decline and steer \
-the conversation back to Sangam literature.
-
-{CITATION_RULE}
-{CONTESTED_INTERPRETATION_RULE}
-"""
+__all__ = [
+    # Re-exported instructions
+    "CITATION_RULE",
+    "CONTESTED_INTERPRETATION_RULE",
+    "NAKKIRAR_INSTRUCTION",
+    "AVVAIYAR_INSTRUCTION",
+    "KAPILAR_INSTRUCTION",
+    "THOLKAPPIYAR_INSTRUCTION",
+    "PARANAR_INSTRUCTION",
+    # Test Prompts
+    "TEST_PROMPTS_NAKKIRAR",
+    "TEST_PROMPTS_AVVAIYAR",
+    "TEST_PROMPTS_KAPILAR",
+    "TEST_PROMPTS_THOLKAPPIYAR",
+    "TEST_PROMPTS_PARANAR",
+    "TEST_PROMPTS_BY_AGENT",
+    "ALL_TEST_PROMPTS",
+    "get_test_prompts",
+]
