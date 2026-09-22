@@ -4,26 +4,26 @@
   "provider": "openrouter",
   "model": "google/gemini-2.5-flash",
   "promptVersion": "etymology-v3",
-  "updatedAt": "2026-08-30T16:56:20+00:00",
+  "updatedAt": "2026-09-21T06:44:59+00:00",
   "totals": {
     "verses": 2489,
-    "annotated": 32,
-    "remaining": 2457
+    "annotated": 67,
+    "remaining": 2422
   },
   "poems": {
     "mullaippattu": {
       "verses": 18,
-      "annotated": 0,
-      "remaining": 18,
-      "status": "pending",
-      "lastRunAt": null
+      "annotated": 18,
+      "remaining": 0,
+      "status": "complete",
+      "lastRunAt": "2026-09-21T06:44:59+00:00"
     },
     "nedunalvadai": {
       "verses": 17,
-      "annotated": 0,
-      "remaining": 17,
-      "status": "pending",
-      "lastRunAt": null
+      "annotated": 17,
+      "remaining": 0,
+      "status": "complete",
+      "lastRunAt": "2026-09-21T06:37:29+00:00"
     },
     "porunaratrupadai": {
       "verses": 21,
@@ -184,6 +184,56 @@
       "failed": 0,
       "poems": [
         "thirumurugatrupadai"
+      ],
+      "failures": []
+    },
+    {
+      "runId": "4503372dc8d5",
+      "startedAt": "2026-09-21T06:33:54+00:00",
+      "finishedAt": "2026-09-21T06:37:29+00:00",
+      "trigger": "manual",
+      "provider": "openrouter",
+      "model": "google/gemini-2.5-flash",
+      "promptVersion": "etymology-v3",
+      "attempted": 17,
+      "annotated": 17,
+      "failed": 0,
+      "poems": [
+        "nedunalvadai"
+      ],
+      "failures": []
+    },
+    {
+      "runId": "00db1c6958df",
+      "startedAt": "2026-09-21T06:37:55+00:00",
+      "finishedAt": "2026-09-21T06:42:47+00:00",
+      "trigger": "manual",
+      "provider": "openrouter",
+      "model": "google/gemini-2.5-flash",
+      "promptVersion": "etymology-v3",
+      "attempted": 18,
+      "annotated": 17,
+      "failed": 1,
+      "poems": [
+        "mullaippattu"
+      ],
+      "failures": [
+        "mullaippattu_17: EtymologyError: expected 42 word annotations, got 41 (after 5 attempts)"
+      ]
+    },
+    {
+      "runId": "c6c80d1697c8",
+      "startedAt": "2026-09-21T06:43:03+00:00",
+      "finishedAt": "2026-09-21T06:44:59+00:00",
+      "trigger": "manual",
+      "provider": "openrouter",
+      "model": "google/gemini-2.5-flash",
+      "promptVersion": "etymology-v3",
+      "attempted": 1,
+      "annotated": 1,
+      "failed": 0,
+      "poems": [
+        "mullaippattu"
       ],
       "failures": []
     }
